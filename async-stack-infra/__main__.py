@@ -79,7 +79,7 @@ instance = aws.ec2.Instance("task-ec2",
     sudo apt install docker.io docker-compose git -y
     git clone https://github.com/YOUR_USERNAME/async-tasks.git /home/ubuntu/async-tasks
     cd /home/ubuntu/async-tasks
-    docker-compose up -d
+    sudo docker-compose up -d
     """,
     tags={"Name": "async-task-ec2"})
 
