@@ -1,0 +1,4 @@
+echo "async-stack-infra/" >> .gitignore
+echo "__pycache__/" >> .gitignore
+echo "*.pyc" >> .gitignore
+echo ".env" >> .gitignore

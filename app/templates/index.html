@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Poridhi Asynchronous Task Submission</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    />
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='icons/images.jpeg') }}"
+      type="image/png"
+    />
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h1 class="text-center mb-4 text-primary">
+        Asynchronous Task Submission
+      </h1>
+
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div
+        class="alert alert-{{ 'success' if category == 'success' else 'danger' }}"
+      >
+        {{ message }}
+      </div>
+      {% endfor %} {% endif %} {% endwith %}
+
+      <div class="row">
+        <!-- Send Email -->
+        <div class="col-md-6">
+          <div class="task-card email-task">
+            <div class="task-header">📧 Send Email</div>
+            <form method="POST">
+              <input type="hidden" name="form_type" value="email" />
+              <input
+                type="text"
+                name="recipient"
+                class="form-control mb-2"
+                placeholder="Recipient Email"
+                required
+              />
+              <input
+                type="text"
+                name="subject"
+                class="form-control mb-2"
+                placeholder="Subject"
+              />
+              <textarea
+                name="body"
+                class="form-control mb-2"
+                placeholder="Email Body"
+              ></textarea>
+              <button type="submit" class="btn btn-light btn-custom">
+                Send Email
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Reverse Text -->
+        <div class="col-md-6">
+          <div class="task-card reverse-task">
+            <div class="task-header">📈 Reverse Text</div>
+            <form method="POST">
+              <input type="hidden" name="form_type" value="reverse" />
+              <input
+                type="text"
+                name="text"
+                class="form-control mb-2"
+                placeholder="Enter Text to Reverse"
+                required
+              />
+              <button type="submit" class="btn btn-dark btn-custom">
+                Reverse
+              </button>
+            </form>
+            {% if reverse_result %}
+            <div class="mt-2">
+              <strong>Result:</strong> {{ reverse_result }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Sentiment Analysis -->
+        <div class="col-md-6">
+          <div class="task-card sentiment-task">
+            <div class="task-header">
+              📊 Sentiment Analysis ('Positive') if 'GooD'
+            </div>
+            <form method="POST">
+              <input type="hidden" name="form_type" value="sentiment" />
+              <input
+                type="text"
+                name="text"
+                class="form-control mb-2"
+                placeholder="Enter Text for Sentiment"
+                required
+              />
+              <button type="submit" class="btn btn-primary btn-custom">
+                Analyze Sentiment
+              </button>
+            </form>
+            {% if sentiment_result %}
+            <div class="mt-2">
+              <strong>Sentiment:</strong> {{ sentiment_result }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
