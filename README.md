@@ -4,35 +4,38 @@
 This section demonstrates how to deploy a *Flask-based asynchronous task processing system* using AWS EC2 ,creating a VPC and public subnetting via driven by Pulumi IaC.
 
 
-##  Architecture Workflow Diagram
-![Cloud Deployment Diagram](https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/cloud.drawio.svg)
+##  Architecture Workflow Diagram:
 
-***1. Create a Virtual Private Cloud (VPC): ***
-*Creates a private isolated network for the application.
-*10.0.0.0/16: IP range allowing 65,536 IPs.
+<img src="asset/Cloud.svg" alt="Broker Diagram" width="1000">
 
-*DNS support helps EC2 use names (not just IPs).
+***1. Create a Virtual Private Cloud (VPC):***
 
-***2. Create a Public Subnet: ***
-*Subnet range: 10.0.1.0/24 (256 IPs).
+* Creates a private isolated network for the application.
+* 10.0.0.0/16: IP range allowing 65,536 IPs.
 
-*Allows EC2 instances to get public IPs with map_public_ip_on_launch=True. and deploying our project under these instance.
-***3. Attach Internet Gateway (IGW): ***
-*Internet Gateway gives the VPC access to the internet.
+* DNS support helps EC2 use names (not just IPs).
 
-*Required for apt install, Docker pulls, etc.
+***2. Create a Public Subnet:***
 
-***4. Create a Route Table: ***
+* Subnet range: 10.0.1.0/24 (256 IPs).
 
-*Defining that all external traffic (0.0.0.0/0) is routed through the Internet Gateway.
+* Allows EC2 instances to get public IPs with map_public_ip_on_launch=True. and deploying our project under these instance.
+***3. Attach Internet Gateway (IGW):***
+* Internet Gateway gives the VPC access to the internet.
 
-***5. Associate the Route Table to the Subnet: ***
+* Required for apt install, Docker pulls, etc.
+
+***4. Create a Route Table:***
+
+* Defining that all external traffic (0.0.0.0/0) is routed through the Internet Gateway.
+
+***5. Associate the Route Table to the Subnet:***
 
 * Links the route table to your subnet.
 
 * Enables public internet routing for EC2s in the subnet.
 
-*** 6. Create a Security Group (Firewall Rules): ***
+***6. Create a Security Group (Firewall Rules):***
 * Allows traffic inbound to:
 
 >>SSH (22) → For EC2 login
@@ -45,53 +48,40 @@ This section demonstrates how to deploy a *Flask-based asynchronous task process
 
 >>RabbitMQ (5672) for Celery message passing
 
-*Egress: All outbound traffic is allowed.
+* Egress: All outbound traffic is allowed.
 
 ***7. Create a Key Pair:***
 * Create or reads the existing public key from ~/.ssh/id_rsa.pub.
 * Ensuresing can SSH into your EC2 instance securely.
 
+***8. Launch an EC2 Instance:***
 
-
-
-
-
-*** 8.Launch an EC2 Instance: ***
-fetching the latest Ubuntu AMI (Amazon Machine Image) from Canonical.	The generated SSH key (~/.ssh/id_rsa.pub) is uploaded to create a new EC2 Key Pair.EC2 instance is created with:
+Fetching the latest Ubuntu AMI (Amazon Machine Image) from Canonical.	The generated SSH key (~/.ssh/id_rsa.pub) is uploaded to create a new EC2 Key Pair.EC2 instance is created with:
 - VPC & Public Subnet association
 - Security Group allowing ports 22, 5000, 5672, 15672, 5555
 - Public IP to access it from browser or SSH
 ~~
-* Entire asynchronous task processing system is deployed and run here.
-*  Handles HTTP Requests and Communicates With Internet.
-* Provides Secure Access and Stores Application Files Temporarily.
+>>* Entire asynchronous task processing system is deployed and run here.
+>>*  Handles HTTP Requests and Communicates With Internet.
+>>* Provides Secure Access and Stores Application Files Temporarily.
 
 
 
-*** 10. Exporting Outputs for Easy Access:***
+***10. Exporting Outputs for Easy Access:***
 
-*When run pulumi up, we'll get:
+* When run pulumi up, we'll get:
 
 >>EC2's Public IP
 
 >>EC2's DNS
 
-*Thren Open:
+* Then Open:
 
 >>http://<public_ip>:5000 → Flask UI
 
 >>http://<public_ip>:15672 → RabbitMQ UI
 
 >>http://<public_ip>:5555 → Flower
-
-
-
-
-
-
-
-
-
 
 
 ---
@@ -107,7 +97,6 @@ fetching the latest Ubuntu AMI (Amazon Machine Image) from Canonical.	The genera
 | Pulumi + AWS EC2 | Automates infrastructure            |
 | Flower           | Real-time Celery task monitoring    |
 
----
 
 ## 📦 Folder Structure
 
@@ -132,9 +121,7 @@ async-stack-infra/
   └── requirements.txt
 
 
----
-
-## 🚀 Features
+## Features
 - Submit 3 types of async tasks from Flask UI:
   - Send Email
   - Reverse Text
@@ -159,7 +146,9 @@ Pulumi CLI installed
 Python 3 and venv installed
 
 Docker installed and working
+
 ~~ At First from the lab generate the Credentials get the access ID and Secret keys
+
 ~~AWS Configuration form the terminal:
 ```bash
 
@@ -167,21 +156,20 @@ aws configure # Use credentials from Poridhi Lab or IAM keys
 
 ```
 
-###📁 2.Initialize Pulumi Project
+### 📁 2.Initialize Pulumi Project
 ```bash
 mkdir async-task-infra
 cd async-task-infra
 pulumi new aws-python
 
-
 ```
 **Respond to prompts:**
 
-*Project name: async-task-infra
+* Project name: async-task-infra
 
-*Stack: dev
+* Stack: dev
 
-*AWS region: ap-southeast-1
+* AWS region: ap-southeast-1
 
 ## 3. Create Python Virtual Environment
 ```bash
@@ -197,7 +185,8 @@ pip install pulumi pulumi_aws
 # or
 python.exe -m pip install -r requirements.txt
 ```
-## 4. Define Infrastructure (__main__.py)
+## 4. Define Infrastructure (__main__.py):
+
 Replace __main__.py with this:
 ```bash
 
@@ -273,11 +262,11 @@ git clone <your_repo_url>
 sudo docker-compose up -d
 ```
 ## 7. Access Your Flask App & Flower
-*Flask UI: http://<public_ip>:5000
+* Flask UI: http://<public_ip>:5000
 
-*Flower: http://<public_ip>:5555
+* Flower: http://<public_ip>:5555
 
-*RabbitMQ: http://<public_ip>:15672 (guest/guest)
+* RabbitMQ: http://<public_ip>:15672 (guest/guest)
 
 ## 8. Postman API Testing
 If want to expose APIs (/submit, /check_status/<id>),  can now use Postman to:
@@ -286,7 +275,7 @@ If want to expose APIs (/submit, /check_status/<id>),  can now use Postman to:
 
 * Check task result via GET /check_status/<task_id>
 
----
+
 
 # 🔄 Task Workflow (Internals)
 
@@ -299,9 +288,9 @@ User -> Flask UI -> Celery .delay() -> RabbitMQ (queue) -> Celery Worker -> Redi
 - *RabbitMQ*: Message Queue between Flask & Celery
 - *Redis*: Tracks status & stores result
 
----
 
-## 🧠 Debugging Tips
+
+##  Debugging Tips
 | Problem                        | Fix                                                      |
 |-------------------------------|-----------------------------------------------------------|
 | Task stuck in PENDING         | Check if Celery worker is running                         |
@@ -312,10 +301,10 @@ User -> Flask UI -> Celery .delay() -> RabbitMQ (queue) -> Celery Worker -> Redi
 ---
 
 ## 🧹 Cleanup AWS
-bash
+```bash
 cd async-stack-infra
 pulumi destroy   # Destroys everything
-
+```
 
 ---
 
