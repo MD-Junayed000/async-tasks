@@ -104,21 +104,6 @@ This Setup can be verified by the created resources such as VPC, Subnet, EC2 ins
 
 
 ## 📦 Folder Structure
-
-async-tasks/
-  ├── app/
-  │   ├── templates/index.html
-  │   ├── static/style.css
-  │   ├── __init__.py
-  │   ├── routes.py
-  │   ├── tasks.py
-  │   └── celeryconfig.py
-  ├── docker-compose.yml
-  ├── Dockerfile
-  ├── requirements.txt
-  ├── run.py
-  └── start.sh / start.ps1
-
 async-stack-infra/
   ├── __main__.py (Pulumi infra code)
   ├── Pulumi.yaml
