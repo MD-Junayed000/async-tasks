@@ -1,4 +1,4 @@
-# Async Task Processing System with Flask, Celery, RabbitMQ & Redis
+# Async Task Processing System with Flask, Celery, RabbitMQ & Pulumi-Driven AWS Deployment
 
 This project demonstrates a production-ready asynchronous task processing system (i.e Deployed in EC2 using Pulumi explained in infra-branch) using:
 
