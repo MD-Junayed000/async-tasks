@@ -256,9 +256,8 @@ sudo usermod -aG docker ubuntu
 ```
 then
 ```bash
-cd async-tasks
 git clone <your_repo_url> 
-
+cd async-tasks
 sudo docker-compose up -d
 ```
 ## 7. Access Your Flask App & Flower
