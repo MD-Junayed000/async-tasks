@@ -84,6 +84,11 @@ Fetching the latest Ubuntu AMI (Amazon Machine Image) from Canonical.	The genera
 >>http://<public_ip>:5555 → Flower
 
 
+This Setup can be verified by the created resources such as VPC, Subnet, EC2 instance using AWS console.
+![overall#](https://github.com/user-attachments/assets/ae14c00e-886a-4a9e-a880-7496e8d93576)
+
+![image](https://github.com/user-attachments/assets/d96e5039-681e-45cb-b536-cb384d07d782)
+
 ---
 
 ## 🔧 Technologies Used
