@@ -84,26 +84,28 @@ Fetching the latest Ubuntu AMI (Amazon Machine Image) from Canonical.	The genera
 >>http://<public_ip>:5555 → Flower
 
 
+***This project uses Pulumi (IaC) tool to define, deploy, and manage cloud infrastructure ( EC2, VPC, S3, etc.) using  programming languages Python.Pulumi Resource Breakdown:***
+
+| Pulumi Code                             | What It Does                                                                 |
+|----------------------------------------|------------------------------------------------------------------------------|
+| `aws.ec2.Vpc(...)`                     | Creates a **Virtual Private Cloud (VPC)** — an isolated network for all your resources. |
+| `aws.ec2.Subnet(...)`                  | Defines a **Public Subnet** inside the VPC where your EC2 will live.     |
+| `aws.ec2.InternetGateway(...)`         | Adds an **Internet Gateway** so instances can access the Internet.       |
+| `aws.ec2.RouteTable(...)`              |  Adds a **route to 0.0.0.0/0** (i.e., full internet access) via the gateway. |
+| `aws.ec2.SecurityGroup(...)`           |  Opens specific ports (22, 5000, 5672, 15672, 5555) — for **SSH, Flask, RabbitMQ, Flower**, etc. |
+| `aws.ec2.Instance(...)`                |  Launches a **t2.micro EC2 instance** using Ubuntu. Pulls your app repo and starts containers via `docker-compose`. |
+| `pulumi.export(...)`                   |  Outputs the **public IP & DNS** of the EC2 so you can access your app from a browser. |
+
+thus instead of clicking buttons on the AWS console Pulumi  build the AWS environment using Python scripts where the Dockerized Flask-Celery app now runs on EC2 with full network access and monitoring.
+
 This Setup can be verified by the created resources such as VPC, Subnet, EC2 instance using AWS console.
 ![overall#](https://github.com/user-attachments/assets/ae14c00e-886a-4a9e-a880-7496e8d93576)
 
 ![image](https://github.com/user-attachments/assets/d96e5039-681e-45cb-b536-cb384d07d782)
 
----
-
-## 🔧 Technologies Used
-| Component        | Purpose                            |
-|------------------|-------------------------------------|
-| Flask            | Web UI + API for task submission    |
-| Celery           | Handles background task execution   |
-| RabbitMQ         | Message broker between services     |
-| Redis            | Stores results + tracks task states |
-| Docker Compose   | Manages multi-container services    |
-| Pulumi + AWS EC2 | Automates infrastructure            |
-| Flower           | Real-time Celery task monitoring    |
 
 
-## 📦 Folder Structure
+## Folder Structure
 async-stack-infra/
   ├── __main__.py (Pulumi infra code)
   ├── Pulumi.yaml
@@ -286,10 +288,10 @@ User -> Flask UI -> Celery .delay() -> RabbitMQ (queue) -> Celery Worker -> Redi
 | Cannot access Flask on EC2    | Ensure Flask binds host='0.0.0.0' + Security Group open |
 | Docker fails to start         | Run sudo docker-compose down -v && up --build -d       |
 | SSH access denied             | Check key path and permissions chmod 400 id_rsa         |
-
+|If Pulumi fails                | try pulumi destroy to clean up, then pulumi up again    |
 ---
 
-## 🧹 Cleanup AWS
+## Cleanup AWS
 ```bash
 cd async-stack-infra
 pulumi destroy   # Destroys everything
@@ -297,17 +299,17 @@ pulumi destroy   # Destroys everything
 
 ---
 
-## ✅ Future Enhancements
-- Add S3 for file upload task 🪣
-- Add auto-retry + failure queue 🌀
-- Persist task logs to CloudWatch or S3 📁
-- UI improvement with live polling or AJAX updates 🔁
+## Future Enhancements
+- Adding S3 for file upload task 
+- Add auto-retry + failure queue 
+- Persist task logs to S3 
+- UI improvement with live polling  
 
 ---
 
 ---
 
-## 💡 Summary
+## Summary
 This project showcases a full *production-style async task pipeline* with modular design, reliable messaging, and full automation via *Pulumi Infrastructure-as-Code*.
 
 
