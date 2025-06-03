@@ -179,16 +179,19 @@ For First-time login need to generate tokens:
 
 On Debian/Ubuntu systems, you need to install the python3-venv
 package using the following command.
+-  1. Update your package index
 ```bash
-# 1. Update your package index
+
 sudo apt update
 ```
+- 2. Install Python 3 and pip
 ```bash
-# 2. Install Python 3 and pip
+
 sudo apt install -y python3 python3-pip
 ```
+- 3. Install venv module for Python 3
 ```bash
-# 3. Install venv module for Python 3
+
 sudo apt install -y python3-venv
 ```
 >>If you're on Ubuntu 22.04 or later, these commands will work out of the box.
@@ -197,11 +200,16 @@ Then create a virtual environment:
 ```bash
 
 python3 -m venv venv
-venv\Scripts\activate    # on Windows
-
-# OR
-source venv/bin/activate  # on Linux/Mac
 ```
+- on Windows
+```bash
+venv\Scripts\activate    
+```
+- OR # on Linux/Mac
+```bash
+source venv/bin/activate  
+```
+
 Install required packages:
 ```bash
 pip install pulumi pulumi_aws
