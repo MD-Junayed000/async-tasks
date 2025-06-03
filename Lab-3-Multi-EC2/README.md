@@ -140,7 +140,7 @@ services:
     restart: always
     command: >
       sh -c "sleep 5 && celery -A app.tasks worker -Q celery_see --loglevel=info --concurrency=4"
-    profiles: ["worker"]
+    profiles: ["celery"]
 
   flower:
     build: .
