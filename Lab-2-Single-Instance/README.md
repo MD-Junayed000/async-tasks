@@ -277,7 +277,7 @@ ami = aws.ec2.get_ami(most_recent=True,
 # 8. EC2 Key Pair (use your existing PEM key if available)
 key_pair = aws.ec2.KeyPair("task-key",
     public_key=open("/root/code/id_rsa.pub").read()
-)
+) ## for working in windows :public_key = open(os.path.expanduser("~/.ssh/id_rsa.pub")).read()
 
 # 9. EC2 Instance
 instance = aws.ec2.Instance("task-ec2",
@@ -291,8 +291,9 @@ instance = aws.ec2.Instance("task-ec2",
     #!/bin/bash
     sudo apt update
     sudo apt install docker.io docker-compose git -y
-    git clone https://github.com/YOUR_USERNAME/async-tasks.git /home/ubuntu/async-tasks
-    cd /home/ubuntu/async-tasks
+    git clone https://github.com/MD-Junayed000/async-tasks.git
+    cd async-tasks
+    cd Lab-1-Async-Tasks/Async-tasks ### SEE LAB-1
     sudo docker-compose up -d
     """,
     tags={"Name": "async-task-ec2"})
