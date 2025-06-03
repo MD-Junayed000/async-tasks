@@ -1,8 +1,8 @@
-version: '3.8'
+version: "3.8"
 services:
   flask:
     build: .
-#    profiles: ["flask"]
+    #    profiles: ["flask"]
     volumes:
       - .:/code
     ports:
@@ -13,7 +13,7 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management
-#    profiles: ["rabbitmq"]
+    #    profiles: ["rabbitmq"]
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -28,13 +28,13 @@ services:
 
   redis:
     image: redis
-    profiles: ["redis"]
+    #    profiles: ["redis"]
     ports:
       - "6379:6379"
 
   celery:
     build: .
-#    profiles: ["celery"]
+    #    profiles: ["celery"]
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -44,7 +44,7 @@ services:
 
   flower:
     build: .
-#    profiles: ["flower"]
+    #    profiles: ["flower"]
     ports:
       - "5555:5555"
     depends_on:
