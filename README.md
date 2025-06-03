@@ -14,8 +14,8 @@ This project demonstrates a production-ready asynchronous task processing system
 This project is divided into 3 Labs, each Lab shows various implementation with techonology tools:
 
 - **Lab-1-Async-Tasks**: System Design in Local machine and Poridhi lab implementation ([Read more](README.md))
-- **Lab-2-Single-Instance**: Pulumi-Driven AWS Deployment steps (single EC2 instance) ([Read more](Lab-2-Single-Instance\README.md))
-- **Lab-3-Multi-EC2**: Multi-EC2 instance deployment ([Read more](Lab-3-Multi-EC2\README.md))
+- **Lab-2-Single-Instance**: Pulumi-Driven AWS Deployment steps (single EC2 instance) ([Read more](https://github.com/MD-Junayed000/async-tasks/blob/main/Lab-2-Single-Instance/README.md))
+- **Lab-3-Multi-EC2**: Multi-EC2 instance deployment ([Read more](https://github.com/MD-Junayed000/async-tasks/blob/main/Lab-3-Multi-EC2/README.md))
 
 
 
