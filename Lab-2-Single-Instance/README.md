@@ -182,10 +182,12 @@ package using the following command.
 ```bash
 # 1. Update your package index
 sudo apt update
-
+```
+```bash
 # 2. Install Python 3 and pip
 sudo apt install -y python3 python3-pip
-
+```
+```bash
 # 3. Install venv module for Python 3
 sudo apt install -y python3-venv
 ```
