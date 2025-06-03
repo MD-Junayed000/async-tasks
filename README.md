@@ -173,7 +173,7 @@ async-tasks/
 ### 1️⃣ Clone the Repo and Navigate
 
 ```bash
-git clone https://github.com/your-username/async-tasks.git
+git clone https://github.com/MD-Junayed000/async-tasks.git
 cd async-tasks
 cd Lab-1-Async-Tasks/Async-tasks
 ```
