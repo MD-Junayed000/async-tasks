@@ -63,8 +63,8 @@ ami = aws.ec2.get_ami(most_recent=True,
 
 # 8. EC2 Key Pair (use your existing PEM key if available)
 key_pair = aws.ec2.KeyPair("task-key",
-    public_key = open(os.path.expanduser("~/.ssh/id_rsa.pub")).read())
-
+    public_key=open("/root/code/id_rsa.pub").read()
+) ## for working in windows :public_key = open(os.path.expanduser("~/.ssh/id_rsa.pub")).read()
 # 9. EC2 Instance
 instance = aws.ec2.Instance("task-ec2",
     ami=ami.id,
