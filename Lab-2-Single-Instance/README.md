@@ -156,22 +156,47 @@ cd async-task-infra
 pulumi new aws-python
 
 ```
-![Screenshot 2025-06-03 232744](https://github.com/user-attachments/assets/34455207-428d-4fea-a2d2-64f1aec124ed)
+For First-time login need to generate tokens:
+
+![image](https://github.com/user-attachments/assets/4e6dccad-d64e-4506-b02e-e59564b47a58)
+![image](https://github.com/user-attachments/assets/eb85c6e0-36d9-42a3-adfb-61429dfc2e91)
 
 **Respond to prompts:**
 
 * Project name: async-task-infra
 
-* Stack: dev
+* Stack: dev (can create your new stack with name of desired)
 
-* AWS region: ap-southeast-1
+* AWS region: ap-southeast-1 
+
+
+
+![Screenshot 2025-06-03 232744](https://github.com/user-attachments/assets/34455207-428d-4fea-a2d2-64f1aec124ed)
+
 
 
 ## 3. Create Python Virtual Environment
+
+On Debian/Ubuntu systems, you need to install the python3-venv
+package using the following command.
+```bash
+# 1. Update your package index
+sudo apt update
+
+# 2. Install Python 3 and pip
+sudo apt install -y python3 python3-pip
+
+# 3. Install venv module for Python 3
+sudo apt install -y python3-venv
+```
+>>If you're on Ubuntu 22.04 or later, these commands will work out of the box.
+
+Then create a virtual environment:
 ```bash
 
-python -m venv venv
+python3 -m venv venv
 venv\Scripts\activate    # on Windows
+
 # OR
 source venv/bin/activate  # on Linux/Mac
 ```
@@ -279,6 +304,7 @@ pulumi.export("public_dns", instance.public_dns)
 ```
 ### 5. Generating a valid SSH key and fixing the path.
 ***🔧 Step 1: Generate a Key Pair***
+
 In the terminal (still in /root/code/):
 ```bash
 ssh-keygen -t rsa -b 2048 -f /root/code/id_rsa -N ""
@@ -305,6 +331,9 @@ should see a line like:
 
 pulumi up --yes
 ```
+you should see a output like this:
+![image](https://github.com/user-attachments/assets/e0eb11b7-4fc1-44c0-b267-1d2407d82b66)
+
 ✅ You will get public_ip of the EC2 instance.
 
 ## 6. SSH Into EC2 and Set Up Dockerized Project
@@ -313,6 +342,7 @@ pulumi up --yes
 ssh -i /root/code/id_rsa ubuntu@<public_ip>
 ```
 🔒 Optional: Fix Permissions
+
 If it still says “unprotected private key”, run:
 
 ```bash
@@ -339,7 +369,8 @@ cd Lab-1-Async-Tasks/Async-tasks
 sudo docker-compose up -d
 ```
 ## 7. Access Your Flask App & Flower
-* Flask UI: http://<public_ip>:5000
+* Flask UI: http://<public_ip>:5000 (demo ![image](https://github.com/user-attachments/assets/7c27d753-9b1b-4878-a346-f65df13deb57) )
+
 
 * Flower: http://<public_ip>:5555
 
@@ -379,8 +410,7 @@ User -> Flask UI -> Celery .delay() -> RabbitMQ (queue) -> Celery Worker -> Redi
 
 ## Cleanup AWS
 ```bash
-cd async-stack-infra
-pulumi destroy   # Destroys everything
+pulumi destroy --yes  # Destroys everything
 ```
 
 ---
