@@ -14,7 +14,7 @@ All EC2s are Dockerized and orchestrated using `docker-compose` profiles.
 
 ##  Architecture Diagram
 
-<img src="assets/Multi.svg" alt="Implementation Diagram" width="1000" >
+<img src="assets/Multi.svg" alt="Implementation Diagram" width="800" >
 
 
 
@@ -94,6 +94,68 @@ Each service has its own profile:
 - `flower`: Monitoring dashboard for Celery tasks (5555)
 
 ---
+###  Optimized docker-compose.yml with profiles so each instance only spins up its assigned service:(Use profiles to isolate services)
+
+```bash
+version: "3.8"
+
+services:
+  flask:
+    build: .
+    volumes:
+      - .:/code
+    ports:
+      - "5000:5000"
+    depends_on:
+      - rabbitmq
+      - redis
+    profiles: ["flask"]
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    profiles: ["rabbitmq"]
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    profiles: ["redis"]
+
+  celery:
+    build: .
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: always
+    command: >
+      sh -c "sleep 5 && celery -A app.tasks worker -Q celery_see --loglevel=info --concurrency=4"
+    profiles: ["worker"]
+
+  flower:
+    build: .
+    ports:
+      - "5555:5555"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: always
+    command: >
+      sh -c "sleep 10 && celery -A app.tasks flower --port=5555"
+    profiles: ["flower"]
+
+```
+
 
 ### 🔗 Celery Configuration (`async-tasks/app/celeryconfig.py`)
 
@@ -168,7 +230,7 @@ cat /home/ubuntu/startup.log
 ```
 ---
 ## Internals — Task Flow
-<img src="assets/Multi-flow.jpg" alt="Implementation Diagram" align="center" width="500" >
+<img src="assets/Multi-flow.jpg" alt="Implementation Diagram" align="center" width="300" height='400' >
 
 •	RabbitMQ: Handles queues
 
