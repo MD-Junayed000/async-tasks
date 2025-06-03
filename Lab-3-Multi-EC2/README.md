@@ -98,10 +98,10 @@ Each service has its own profile:
 
 ```bash
 version: "3.8"
-
 services:
   flask:
     build: .
+    profiles: ["flask"]
     volumes:
       - .:/code
     ports:
@@ -109,10 +109,10 @@ services:
     depends_on:
       - rabbitmq
       - redis
-    profiles: ["flask"]
 
   rabbitmq:
     image: rabbitmq:3-management
+    profiles: ["rabbitmq"]
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -124,26 +124,26 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-    profiles: ["rabbitmq"]
 
   redis:
     image: redis
+    profiles: ["redis"]
     ports:
       - "6379:6379"
-    profiles: ["redis"]
 
   celery:
     build: .
+    profiles: ["celery"]
     depends_on:
       rabbitmq:
         condition: service_healthy
     restart: always
     command: >
       sh -c "sleep 5 && celery -A app.tasks worker -Q celery_see --loglevel=info --concurrency=4"
-    profiles: ["celery"]
 
   flower:
     build: .
+    profiles: ["flower"]
     ports:
       - "5555:5555"
     depends_on:
@@ -152,7 +152,6 @@ services:
     restart: always
     command: >
       sh -c "sleep 10 && celery -A app.tasks flower --port=5555"
-    profiles: ["flower"]
 
 ```
 
