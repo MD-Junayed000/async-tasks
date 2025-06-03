@@ -9,6 +9,19 @@ This project demonstrates a production-ready asynchronous task processing system
 * ✅ Flower (Monitoring UI)
 * ✅ Docker (Multi-service orchestration)
 
+## 🎯 Project Overview
+
+This project is divided into 3 Labs, each Lab shows various implementation with techonology tools:
+
+- **Lab-1-Async-Tasks**: System Design in Local machine and Poridhi lab implementation ([Read more](README.md))
+- **Lab-2-Single-Instance**: Pulumi-Driven AWS Deployment steps (single EC2 instance) ([Read more](Lab-2-Single-Instance\README.md))
+- **Lab-3-Multi-EC2**: Multi-EC2 instance deployment ([Read more](Lab-3-Multi-EC2\README.md))
+
+
+
+
+
+
 >  **Objective**: Design a system that allows users to submit tasks asynchronously from a Flask API, execute them reliably in the background using Celery, queue tasks in RabbitMQ, and store task states and results in a backend db (redis).
 
 ---
@@ -149,24 +162,10 @@ async-tasks/
 ```bash
 git clone https://github.com/your-username/async-tasks.git
 cd async-tasks
+cd Lab-1-Async-Tasks/Async-tasks
 ```
 
-### 2️⃣ Create & Activate Python Virtual Environment
-
-```bash
-python -m venv venv
-venv\Scripts\activate   # Windows
-# OR
-source venv/bin/activate  # Linux/macOS
-```
-
-### 3️⃣ Install Required Packages
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4️⃣ Start Services via Docker
+### 2️⃣ Start Services via Docker
 
 ```bash
 docker-compose up --build
@@ -195,6 +194,48 @@ docker-compose up --build
 Each task returns a `Task ID` and status message ✅/❌.
 
 ---
+
+## Poridhi Lab Setup
+
+1. Access the application through load balancer:
+At first we load the system following the instructions as in local machine and checking if all the ports are forwarded
+![image](https://github.com/user-attachments/assets/7e400c90-6b9e-4787-8416-12f10e29657c)
+
+2.Configure IP and port:
+- Get IP from eth0 using `ifconfig`
+
+![WhatsApp Image 2025-06-03 at 15 58 00_f2d59dd0](https://github.com/user-attachments/assets/c007ea7b-90ba-4270-a214-0e7b24545a1a)
+- Use application port from Dockerfile
+
+3. Create load balancer and Configure with your application's IP and port in Poridhi lab:
+![Screenshot 2025-06-03 155900](https://github.com/user-attachments/assets/aec14ae4-a1d6-405b-aa52-e710c5a9ece5)
+
+![image](https://github.com/user-attachments/assets/f7786750-1b00-4e37-86a1-34744d5b7cb4)
+
+---
+## Appication
+### API Endpoints
+**Submit a Task:** Submit any sorts of task like Email,Reverse text proessing,Sentiment analysis if text contain 'good'keywords.If 'fail' keyword in email receipent,it will raise error and will retry max 3 times then discarded.
+Domain name for a load balancer in the Poridhi lab environment (For 5000 port):https://67aa3ccddb2c69e7e975ceff-lb-803.bm-southeast.lab.poridhi.io/
+   
+![Screenshot 2025-06-03 192518](https://github.com/user-attachments/assets/6054e0c2-23f9-4f16-8fd2-e99298c52616)
+
+
+##  Task Monitoring with Flower
+
+* Open the load balancer for port 5555 in the poridhi lab environment:https://67aa3ccddb2c69e7e975ceff-lb-751.bm-southeast.lab.poridhi.io/tasks
+
+  ![Screenshot 2025-06-03 192629](https://github.com/user-attachments/assets/2dbf9954-abf7-4611-af9f-8e9be87efc2b)
+
+* View task history, retries, failures
+* Inspect live workers and system load
+
+## RabbitMQ Management UI
+-Default credentials: guest/guest
+-Monitor queues, exchanges, and connections
+![Screenshot 2025-06-03 192604](https://github.com/user-attachments/assets/66837fde-a699-4a30-afab-009b97812658)
+
+
 ## Error Handling & Retries
 >Email task uses self.retry() with max_retries=3
 
@@ -203,40 +244,19 @@ Each task returns a `Task ID` and status message ✅/❌.
 >Redis tracks the task state:
 
 *PENDING, SUCCESS, RETRY, FAILURE
+![Screenshot 2025-06-03 192859](https://github.com/user-attachments/assets/c33a9312-de04-4305-b0d6-40a9be625430)
+
 
 > inspect it using:
 
 ```bash
-docker exec -it redis redis-cli
+docker exec -it async-tasks-redis-1 redis-cli
 > KEYS *
+> GET celery-task-meta-xxxxxxx
 ```
 
 
-
-
-##  Task Monitoring with Flower
-
-* Open [http://localhost:5555](http://localhost:5555)
-* View task history, retries, failures
-* Inspect live workers and system load
-
-
-
-##  Task Status API
-
-### 🔍 GET `/check_status/<task_id>`
-
-Returns task status from Redis:
-
-```json
-{
-  "task_id": "a1b2c3d4",
-  "state": "SUCCESS",
-  "result": "Email sent to xyz"
-}
-```
-
-### 🧪 Use Postman for Submissions
+###  Use Postman for Submissions
 
 Example JSON for email:
 
@@ -261,7 +281,7 @@ Example JSON for email:
 
 ---
 
-##  Deployment on AWS EC2 (Fully Explained in --branch infra)
+##  Deployment on AWS EC2 (Fully Explained in Lab-2 and Lab-3)
 
 1. Launch Ubuntu EC2
 2. SSH into it
