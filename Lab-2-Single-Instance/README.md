@@ -135,11 +135,11 @@ AWS CLI installed
 
 Pulumi CLI installed 
 
-Python 3 and venv installed
-
 Docker installed and working
 
 ~~ At First from the lab generate the Credentials get the access ID and Secret keys
+![Screenshot 2025-06-03 232530](https://github.com/user-attachments/assets/4968a08b-e35a-4795-8de5-531493a8dccc)
+
 
 ~~AWS Configuration form the terminal:
 ```bash
@@ -147,6 +147,7 @@ Docker installed and working
 aws configure # Use credentials from Poridhi Lab or IAM keys
 
 ```
+![Screenshot 2025-06-03 232610](https://github.com/user-attachments/assets/3464361a-f40e-460a-afb0-2d421a528f6e)
 
 ### 📁 2.Initialize Pulumi Project
 ```bash
@@ -155,6 +156,8 @@ cd async-task-infra
 pulumi new aws-python
 
 ```
+![Screenshot 2025-06-03 232744](https://github.com/user-attachments/assets/34455207-428d-4fea-a2d2-64f1aec124ed)
+
 **Respond to prompts:**
 
 * Project name: async-task-infra
@@ -162,6 +165,7 @@ pulumi new aws-python
 * Stack: dev
 
 * AWS region: ap-southeast-1
+
 
 ## 3. Create Python Virtual Environment
 ```bash
@@ -175,7 +179,7 @@ Install required packages:
 ```bash
 pip install pulumi pulumi_aws
 # or
-python.exe -m pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 ## 4. Define Infrastructure (__main__.py):
 
@@ -184,49 +188,119 @@ Replace __main__.py with this:
 
 import pulumi
 import pulumi_aws as aws
+import os
+# 1. Create VPC
+vpc = aws.ec2.Vpc("task-vpc",
+    cidr_block="10.0.0.0/16",
+    enable_dns_support=True,
+    enable_dns_hostnames=True,
+    tags={"Name": "task-vpc"})
 
-# 1. VPC
-vpc = aws.ec2.Vpc("my-vpc", cidr_block="10.0.0.0/16")
-subnet = aws.ec2.Subnet("public-subnet", vpc_id=vpc.id, cidr_block="10.0.1.0/24", map_public_ip_on_launch=True)
+#  2. Public Subnet
+subnet = aws.ec2.Subnet("task-subnet",
+    vpc_id=vpc.id,
+    cidr_block="10.0.1.0/24",
+    map_public_ip_on_launch=True,
+    availability_zone="ap-southeast-1a",
+    tags={"Name": "task-subnet"})
 
-# 2. IGW + Route Table
-igw = aws.ec2.InternetGateway("igw", vpc_id=vpc.id)
-route_table = aws.ec2.RouteTable("route-table", vpc_id=vpc.id,
-    routes=[aws.ec2.RouteTableRouteArgs(
-        cidr_block="0.0.0.0/0",
-        gateway_id=igw.id
-    )])
-aws.ec2.RouteTableAssociation("route-table-assoc", subnet_id=subnet.id, route_table_id=route_table.id)
+#  3. Internet Gateway
+igw = aws.ec2.InternetGateway("task-igw",
+    vpc_id=vpc.id,
+    tags={"Name": "task-igw"})
 
-# 3. Security Group
-sg = aws.ec2.SecurityGroup("allow-ssh-http", vpc_id=vpc.id,
+#  4. Route Table
+route_table = aws.ec2.RouteTable("task-rt",
+    vpc_id=vpc.id,
+    routes=[{
+        "cidr_block": "0.0.0.0/0",
+        "gateway_id": igw.id,
+    }],
+    tags={"Name": "task-rt"})
+
+#  5. Associate Route Table to Subnet
+aws.ec2.RouteTableAssociation("task-rt-assoc",
+    subnet_id=subnet.id,
+    route_table_id=route_table.id)
+
+# 6. Security Group (allow SSH + web ports)
+sec_group = aws.ec2.SecurityGroup("task-sg",
+    vpc_id=vpc.id,
+    description="Allow SSH, Flask, RabbitMQ, Flower",
     ingress=[
         {"protocol": "tcp", "from_port": 22, "to_port": 22, "cidr_blocks": ["0.0.0.0/0"]},
         {"protocol": "tcp", "from_port": 5000, "to_port": 5000, "cidr_blocks": ["0.0.0.0/0"]},
+        {"protocol": "tcp", "from_port": 15672, "to_port": 15672, "cidr_blocks": ["0.0.0.0/0"]},
         {"protocol": "tcp", "from_port": 5555, "to_port": 5555, "cidr_blocks": ["0.0.0.0/0"]},
+        {"protocol": "tcp", "from_port": 5672, "to_port": 5672, "cidr_blocks": ["0.0.0.0/0"]}
     ],
-    egress=[{"protocol": "-1", "from_port": 0, "to_port": 0, "cidr_blocks": ["0.0.0.0/0"]}]
+    egress=[{
+        "protocol": "-1",
+        "from_port": 0,
+        "to_port": 0,
+        "cidr_blocks": ["0.0.0.0/0"]
+    }],
+    tags={"Name": "task-secgroup"})
+
+#  7. AMI (Ubuntu 22.04)
+ami = aws.ec2.get_ami(most_recent=True,
+                      owners=["099720109477"],
+                      filters=[
+                          {"name": "name", "values": ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]},
+                      ])
+
+# 8. EC2 Key Pair (use your existing PEM key if available)
+key_pair = aws.ec2.KeyPair("task-key",
+    public_key=open("/root/code/id_rsa.pub").read()
 )
 
-# 4. EC2 Key Pair (create manually and upload)
-key_name = "MyKeyPair"
-
-# 5. EC2 Instance
-ami = "ami-060e277c0d4cce553"  # Ubuntu 24.04 LTS (Singapore region)
-instance = aws.ec2.Instance("app-instance",
+# 9. EC2 Instance
+instance = aws.ec2.Instance("task-ec2",
+    ami=ami.id,
     instance_type="t2.micro",
-    vpc_security_group_ids=[sg.id],
-    ami=ami,
     subnet_id=subnet.id,
-    key_name=key_name,
+    vpc_security_group_ids=[sec_group.id],
     associate_public_ip_address=True,
-    tags={"Name": "FlaskAppInstance"}
-)
+    key_name=key_pair.key_name,
+    user_data="""
+    #!/bin/bash
+    sudo apt update
+    sudo apt install docker.io docker-compose git -y
+    git clone https://github.com/YOUR_USERNAME/async-tasks.git /home/ubuntu/async-tasks
+    cd /home/ubuntu/async-tasks
+    sudo docker-compose up -d
+    """,
+    tags={"Name": "async-task-ec2"})
 
+#  10. Export Public IP & DNS
 pulumi.export("public_ip", instance.public_ip)
 pulumi.export("public_dns", instance.public_dns)
+
 ```
-## 5. Deploy Infrastructure
+### 5. Generating a valid SSH key and fixing the path.
+***🔧 Step 1: Generate a Key Pair***
+In the terminal (still in /root/code/):
+```bash
+ssh-keygen -t rsa -b 2048 -f /root/code/id_rsa -N ""
+```
+- This creates:
+
+-- ✅ /root/code/id_rsa → private key
+
+-- ✅ /root/code/id_rsa.pub → public key
+
+***🔧 Step 2: Confirm the file exists***
+```bash
+ls -l /root/code/id_rsa.pub
+```
+should see a line like:
+```bash
+-rw------- 1 root root 426 Jun 4 10:23 /root/code/id_rsa.pub
+
+```
+![Screenshot 2025-06-04 004053](https://github.com/user-attachments/assets/ed907d21-a57b-4606-963d-36e1fd280903)
+
+## 6. Deploy Infrastructure
 ```bash
 
 pulumi up --yes
@@ -236,8 +310,19 @@ pulumi up --yes
 ## 6. SSH Into EC2 and Set Up Dockerized Project
 ```bash
 
-ssh -i MyKeyPair.pem ubuntu@<public_ip>
+ssh -i /root/code/id_rsa ubuntu@<public_ip>
 ```
+🔒 Optional: Fix Permissions
+If it still says “unprotected private key”, run:
+
+```bash
+chmod 400 /root/code/id_rsa
+```
+Then try again:
+```bash
+ssh -i /root/code/id_rsa ubuntu@<public_ip>
+```
+
 Then inside EC2:
 
 ```bash
@@ -248,8 +333,9 @@ sudo usermod -aG docker ubuntu
 ```
 then
 ```bash
-git clone <your_repo_url> 
+git clone https://github.com/MD-Junayed000/async-tasks.git
 cd async-tasks
+cd Lab-1-Async-Tasks/Async-tasks
 sudo docker-compose up -d
 ```
 ## 7. Access Your Flask App & Flower
