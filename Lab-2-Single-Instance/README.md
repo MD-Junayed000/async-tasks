@@ -407,7 +407,7 @@ User -> Flask UI -> Celery .delay() -> RabbitMQ (queue) -> Celery Worker -> Redi
 | Docker fails to start         | Run sudo docker-compose down -v && up --build -d       |
 | SSH access denied             | Check key path and permissions chmod 400 id_rsa         |
 |If Pulumi fails                | try pulumi destroy to clean up, then pulumi up again    |
----
+
 
 ## Cleanup AWS
 ```bash
@@ -422,9 +422,8 @@ pulumi destroy --yes  # Destroys everything
 - Persist task logs to S3 
 - UI improvement with live polling  
 
----
 
----
+
 
 ## Summary
 This project showcases a full *production-style async task pipeline* with modular design, reliable messaging, and full automation via *Pulumi Infrastructure-as-Code*.
