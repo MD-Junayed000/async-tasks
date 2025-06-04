@@ -204,7 +204,8 @@ Pulumi CLI installed
 Docker installed and working
 
 ~~ At First from the lab generate the Credentials get the access ID and Secret keys
-![Screenshot 2025-06-03 232530](https://github.com/user-attachments/assets/4968a08b-e35a-4795-8de5-531493a8dccc)
+![image](https://github.com/user-attachments/assets/bcb9200f-93e4-4a6b-986c-55843b40648a)
+
 
 
 ~~AWS Configuration form the terminal:
@@ -213,7 +214,8 @@ Docker installed and working
 aws configure # Use credentials from Poridhi Lab or IAM keys
 
 ```
-![Screenshot 2025-06-03 232610](https://github.com/user-attachments/assets/3464361a-f40e-460a-afb0-2d421a528f6e)
+![image](https://github.com/user-attachments/assets/92e8ce8c-fec7-4789-afe5-0e484d6ed932)
+
 
 ### 📁 2.Initialize Pulumi Project
 ```bash
@@ -484,7 +486,8 @@ should see a line like:
 pulumi up --yes
 ```
 you should see a output like this:
-![image](https://github.com/user-attachments/assets/e0eb11b7-4fc1-44c0-b267-1d2407d82b66)
+![image](https://github.com/user-attachments/assets/bff9f865-29d4-448d-a6b4-0974ea00bdf4)
+
 
 ✅ You will get public_ip of the EC2 instance.
 
