@@ -191,43 +191,335 @@ async-stack-Multi-EC2/
 
 ---
 
-##  Deploy the System (Step-by-Step)
+##  Step-by-Step Setup (Local + AWS EC2 Deployment) using the Poridhi.io AWS NEtworking Lab (Launch An Ec2 Instance In A Virtual Private Cloud (vpc)): 
 
-###  1. Prerequisites
-- AWS CLI configured (`aws configure`)
-- Pulumi installed (`npm install -g pulumi`)
-- Docker installed
-- SSH key: `~/.ssh/id_rsa.pub`
-###  2. Initialize Pulumi
+
+### ✅ 1. Prerequisites (on your machine)
+Make sure you’ve:
+
+AWS CLI installed 
+
+Pulumi CLI installed 
+
+Docker installed and working
+
+~~ At First from the lab generate the Credentials get the access ID and Secret keys
+![Screenshot 2025-06-03 232530](https://github.com/user-attachments/assets/4968a08b-e35a-4795-8de5-531493a8dccc)
+
+
+~~AWS Configuration form the terminal:
 ```bash
-mkdir async-stack-Multi-EC2 && cd async-stack-Multi-EC2
+
+aws configure # Use credentials from Poridhi Lab or IAM keys
+
+```
+![Screenshot 2025-06-03 232610](https://github.com/user-attachments/assets/3464361a-f40e-460a-afb0-2d421a528f6e)
+
+### 📁 2.Initialize Pulumi Project
+```bash
+mkdir async-stack-Multi-EC2
+cd async-stack-Multi-EC2
 pulumi new aws-python
+
 ```
-Replace __main__.py with given full script.
+For First-time login need to generate tokens:
 
-### 3. Setup Python Environment
+![image](https://github.com/user-attachments/assets/4e6dccad-d64e-4506-b02e-e59564b47a58)
+![image](https://github.com/user-attachments/assets/eb85c6e0-36d9-42a3-adfb-61429dfc2e91)
 
+**Respond to prompts:**
+
+* Project name: async-task-infra
+
+* Stack: dev (can create your new stack with name of desired)
+
+* AWS region: ap-southeast-1 
+
+
+
+![Screenshot 2025-06-03 232744](https://github.com/user-attachments/assets/34455207-428d-4fea-a2d2-64f1aec124ed)
+
+
+
+## 3. Create Python Virtual Environment
+
+On Debian/Ubuntu systems, you need to install the python3-venv
+package using the following command.
+-  1. Update your package index
 ```bash
-python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate on Windowspip install -r requirements.txt
+
+sudo apt update
+```
+- 2. Install Python 3 and pip
+```bash
+
+sudo apt install -y python3 python3-pip
+```
+- 3. Install venv module for Python 3
+```bash
+
+sudo apt install -y python3-venv
+```
+>>If you're on Ubuntu 22.04 or later, these commands will work out of the box.
+
+Then create a virtual environment:
+```bash
+
+python3 -m venv venv
+```
+- on Windows
+```bash
+venv\Scripts\activate    
+```
+- OR # on Linux/Mac
+```bash
+source venv/bin/activate  
 ```
 
-### 4. Deploy Full Infrastructure
-
+Install required packages:
 ```bash
+pip install pulumi pulumi_aws
+# or
+pip install -r requirements.txt
+```
+## 4. Define Infrastructure (__main__.py):
+
+Replace __main__.py with this:
+```bash
+
+import pulumi
+import pulumi_aws as aws
+import os
+
+# Ubuntu 22.04 AMI
+ami = aws.ec2.get_ami(most_recent=True,
+    owners=["099720109477"],
+    filters=[{"name": "name", "values": ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]}]
+)
+
+# VPC & Networking
+vpc = aws.ec2.Vpc("vpc",
+    cidr_block="10.0.0.0/16",
+    enable_dns_support=True,
+    enable_dns_hostnames=True,
+    tags={"Name": "async-vpc"}
+)
+
+# Subnet
+subnet = aws.ec2.Subnet("subnet",
+    vpc_id=vpc.id,
+    cidr_block="10.0.1.0/24",
+    map_public_ip_on_launch=True,
+    tags={"Name": "async-subnet"}
+)
+
+# Internet Gateway
+igw = aws.ec2.InternetGateway("igw",
+    vpc_id=vpc.id,
+    tags={"Name": "async-igw"}
+)
+
+# Route Table
+route_table = aws.ec2.RouteTable("route-table",
+    vpc_id=vpc.id,
+    routes=[{
+        "cidr_block": "0.0.0.0/0",
+        "gateway_id": igw.id,
+    }],
+    tags={"Name": "async-rt"}
+)
+
+# Route Table Association
+aws.ec2.RouteTableAssociation("route-table-assoc",
+    subnet_id=subnet.id,
+    route_table_id=route_table.id,
+    opts=pulumi.ResourceOptions(additional_secret_outputs=["route_table_id"])
+)
+
+
+# Security Group
+sec_group = aws.ec2.SecurityGroup("secgroup",
+    vpc_id=vpc.id,
+    description="Allow required ports",
+    ingress=[
+        {"protocol": "tcp", "from_port": 22, "to_port": 22, "cidr_blocks": ["0.0.0.0/0"]},
+        {"protocol": "tcp", "from_port": 5000, "to_port": 5000, "cidr_blocks": ["0.0.0.0/0"]},
+        {"protocol": "tcp", "from_port": 5555, "to_port": 5555, "cidr_blocks": ["0.0.0.0/0"]},
+        {"protocol": "tcp", "from_port": 5672, "to_port": 5672, "cidr_blocks": ["0.0.0.0/0"]},
+        {"protocol": "tcp", "from_port": 15672, "to_port": 15672, "cidr_blocks": ["0.0.0.0/0"]},
+        {"protocol": "tcp", "from_port": 6379, "to_port": 6379, "cidr_blocks": ["0.0.0.0/0"]},
+    ],
+    egress=[{"protocol": "-1", "from_port": 0, "to_port": 0, "cidr_blocks": ["0.0.0.0/0"]}],
+    tags={"Name": "async-secgroup"}
+)
+
+# SSH Key
+key_pair = aws.ec2.KeyPair("ssh-key",public_key=open("/root/code/id_rsa.pub").read())
+
+# startup script
+def make_script(service, rabbitmq_ip="", redis_ip=""):
+    # Determine which additional profiles are needed
+    extra_profiles = ""
+    if service == "flask" or service == "flower" or service == "celery":
+       extra_profiles = "--profile rabbitmq --profile redis"
+
+    return f"""#!/bin/bash
+export DEBIAN_FRONTEND=noninteractive
+
+# Install Docker + Compose v2
+apt update -y
+apt install -y docker.io git curl
+systemctl start docker
+usermod -aG docker ubuntu
+sleep 30
+
+# Install Docker Compose v2
+curl -L https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+
+# Setup project
+cd /home/ubuntu
+git clone https://github.com/MD-Junayed000/async-tasks-multi-EC2.git
+cd async-tasks-multi-EC2
+
+# Inject broker and redis IPs
+sed -i 's|<BROKER_IP>|{rabbitmq_ip}|g' app/celeryconfig.py
+sed -i 's|<REDIS_IP>|{redis_ip}|g' app/celeryconfig.py
+
+# Logging everything
+echo "==== STARTUP LOG for {service} ====" >> /home/ubuntu/startup.log
+docker-compose {extra_profiles} --profile {service} build >> /home/ubuntu/startup.log 2>&1
+docker-compose {extra_profiles} --profile {service} up -d >> /home/ubuntu/startup.log 2>&1
+"""
+
+
+
+
+#  EC2 instance function
+def create_instance(name, script):
+    return aws.ec2.Instance(name,
+        ami=ami.id,
+        instance_type="t2.micro",
+        subnet_id=subnet.id,
+        associate_public_ip_address=True, ### request a public IP address assigned by AWS during launch
+        vpc_security_group_ids=[sec_group.id],
+        key_name=key_pair.key_name,
+        user_data=script,
+        tags={"Name": name}
+    )
+
+# 1. RabbitMQ EC2
+rabbitmq_script = make_script("rabbitmq")
+rabbitmq = create_instance("rabbitmq-ec2", rabbitmq_script)
+
+# 2. Redis EC2
+redis_script = make_script("redis")
+redis = create_instance("redis-ec2", redis_script)
+
+# 3. Flask EC2
+flask_script = pulumi.Output.all(rabbitmq.public_ip, redis.public_ip).apply(
+    lambda ips: make_script("flask", ips[0], ips[1])
+)
+flask = create_instance("flask-ec2", flask_script)
+
+# 4. Worker1 EC2
+worker1_script = pulumi.Output.all(rabbitmq.public_ip, redis.public_ip).apply(
+    lambda ips: make_script("celery", ips[0], ips[1])
+)
+worker1 = create_instance("worker1-ec2", worker1_script)
+
+# 5. Worker2 EC2
+worker2_script = pulumi.Output.all(rabbitmq.public_ip, redis.public_ip).apply(
+    lambda ips: make_script("celery", ips[0], ips[1])
+)
+worker2 = create_instance("worker2-ec2", worker2_script)
+
+# 6. Flower EC2
+flower_script = pulumi.Output.all(rabbitmq.public_ip, redis.public_ip).apply(
+    lambda ips: make_script("flower", ips[0], ips[1])
+)
+flower = create_instance("flower-ec2", flower_script)
+
+# Outputs
+pulumi.export("Flask Public IP", flask.public_ip)
+pulumi.export("RabbitMQ IP", rabbitmq.public_ip)
+pulumi.export("Redis IP", redis.public_ip)
+pulumi.export("Worker1 IP", worker1.public_ip)
+pulumi.export("Worker2 IP", worker2.public_ip)
+pulumi.export("Flower IP", flower.public_ip)
+
+
+```
+
+here the modified app/celeryconfig.py in async-tasks and docker-compose.yml are pushed into a new repo https://github.com/MD-Junayed000/async-tasks-multi-EC2 and clone directly into the __main__.py.
+
+
+### 5. Generating a valid SSH key and fixing the path.
+***🔧 Step 1: Generate a Key Pair***
+
+In the terminal (still in /root/code/):
+```bash
+ssh-keygen -t rsa -b 2048 -f /root/code/id_rsa -N ""
+```
+- This creates:
+
+-- ✅ /root/code/id_rsa → private key
+
+-- ✅ /root/code/id_rsa.pub → public key
+
+***🔧 Step 2: Confirm the file exists***
+```bash
+ls -l /root/code/id_rsa.pub
+```
+should see a line like:
+```bash
+-rw------- 1 root root 426 Jun 4 10:23 /root/code/id_rsa.pub
+
+```
+![Screenshot 2025-06-04 004053](https://github.com/user-attachments/assets/ed907d21-a57b-4606-963d-36e1fd280903)
+
+## 6. Deploy Infrastructure
+```bash
+
 pulumi up --yes
 ```
+you should see a output like this:
+![image](https://github.com/user-attachments/assets/e0eb11b7-4fc1-44c0-b267-1d2407d82b66)
 
-You’ll get public IPs of each EC2 instance:
-- Flask UI: http://<Flask-IP>:5000
-- Flower: http://<Flower-IP>:5555
-- RabbitMQ UI: http://<RabbitMQ-IP>:15672 (guest/guest)
-### 5. Connect & Monitor
+✅ You will get public_ip of the EC2 instance.
+
+## 6. Monitor and Control:
+SSH Into EC2 
 ```bash
-ssh -i ~/.ssh/id_rsa ubuntu@<Flask_Public_IP>
+
+ssh -i /root/code/id_rsa ubuntu@<public_ip>
+```
+🔒 Optional: Fix Permissions
+
+If it still says “unprotected private key”, run:
+
+```bash
+chmod 400 /root/code/id_rsa
+```
+Then try again:
+```bash
+ssh -i /root/code/id_rsa ubuntu@<public_ip>
+```
+
+Then inside EC2 monitor which services are setup and there logs:
+
+```bash
+
 cat /home/ubuntu/startup.log
 ```
----
+
+
+
+
+
+
+
+
 ## Internals — Task Flow
 <img src="assets/Multi-flow.jpg" alt="Implementation Diagram" align="center" width="300" height='400' >
 
