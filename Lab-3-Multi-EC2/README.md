@@ -1,4 +1,4 @@
-#  Asynchronous Task Processing System using Flask, Celery, RabbitMQ, Redis, Flower & Pulumi-AWS Multi-EC2 Deployment
+#  Asynchronous Task Processing System using  Pulumi-AWS Multi-EC2 Deployment
 
 ##  Project Overview
 > Unlike monolithic deployments, this design runs each component in **separate EC2 instances** within a shared VPC , created and managed automatically using Pulumi:
@@ -10,7 +10,6 @@
 
 All EC2s are Dockerized and orchestrated using `docker-compose` profiles.
 
----
 
 ##  Architecture Diagram
 
@@ -191,10 +190,10 @@ async-stack-Multi-EC2/
 
 ---
 
-##  Step-by-Step Setup (Local + AWS EC2 Deployment) using the Poridhi.io AWS NEtworking Lab (Launch An Ec2 Instance In A Virtual Private Cloud (vpc)): 
+##  Step-by-Step Setup (Local + AWS EC2 Deployment) : 
 
 
-### ✅ 1. Prerequisites (on your machine)
+###  1. Prerequisites (on your machine)
 Make sure you’ve:
 
 AWS CLI installed 
@@ -208,13 +207,16 @@ Docker installed and working
 
 
 
-~~AWS Configuration form the terminal:
+~~ AWS Configuration from the terminal:
 ```bash
 
 aws configure # Use credentials from Poridhi Lab or IAM keys
 
 ```
-![image](https://github.com/user-attachments/assets/10ab64ce-9d44-41cd-908e-cfc972b12b96)
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/10ab64ce-9d44-41cd-908e-cfc972b12b96" alt="image" width="700">
+</div>
+
 
 
 
@@ -227,8 +229,11 @@ pulumi new aws-python
 ```
 For First-time login need to generate tokens:
 
-![image](https://github.com/user-attachments/assets/4e6dccad-d64e-4506-b02e-e59564b47a58)
-![image](https://github.com/user-attachments/assets/eb85c6e0-36d9-42a3-adfb-61429dfc2e91)
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/4e6dccad-d64e-4506-b02e-e59564b47a58" alt="image" width="700">
+</div>
+
+
 
 **Respond to prompts:**
 
@@ -490,9 +495,12 @@ should see a line like:
 pulumi up --yes
 ```
 you should see a output like this:
-![image](https://github.com/user-attachments/assets/bff9f865-29d4-448d-a6b4-0974ea00bdf4)
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/bff9f865-29d4-448d-a6b4-0974ea00bdf4" alt="image" >
+</div>
 
-is going to take **2-3 mins for the entire system to setup** and the ports to bind and working
+
+ Going to take **2-3 mins for the entire system to setup** and the ports to bind and working
 
 ✅ You will get public_ip of the EC2 instance.
 
@@ -543,7 +551,10 @@ docker exec -it <name> redis-cli
 
 
 ## Internals — Task Flow
-<img src="assets/Multi-flow.jpg" alt="Implementation Diagram" align="center" width="300" height='400' >
+<div align="center">
+  <img src="assets/Multi-flow.jpg" alt="Implementation Diagram" width="300" height="400">
+</div>
+
 
 •	RabbitMQ: Handles queues
 
@@ -581,11 +592,7 @@ pulumi destroy --yes
 - **Monitoring** via Flower
 - **Scalable and modular async task processing**
 
----
 
-##  License
-
-MIT License © 2025 [poridhi.io](https://poridhi.io)
 
 
 
