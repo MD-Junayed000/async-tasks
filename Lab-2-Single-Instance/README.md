@@ -9,79 +9,78 @@ This section demonstrates how to deploy a *Flask-based asynchronous task process
 <img src="asset/Work.svg" alt="Broker Diagram" width="1000">
 
 ***1. Create a Virtual Private Cloud (VPC):***
+The first step is setting up a VPC, which creates a private, isolated network environment for your infrastructure.
 
-* Creates a private isolated network for the application.
-* 10.0.0.0/16: IP range allowing 65,536 IPs.
+* CIDR block: 10.0.0.0/16 provides up to 65,536 private IP addresses.
 
-* DNS support helps EC2 use names (not just IPs).
+* DNS hostnames and DNS resolution are enabled to allow internal name resolution across the VPC.
 
 ***2. Create a Public Subnet:***
+A public subnet (10.0.0.0/24) is created inside the VPC. It supports up to 256 IP addresses and is configured with map_public_ip_on_launch = true, ensuring that EC2 instances get publicly routable IPs automatically. This subnet will host our application instance.
 
-* Subnet range: 10.0.1.0/24 (256 IPs).
-
-* Allows EC2 instances to get public IPs with map_public_ip_on_launch=True. and deploying our project under these instance.
 ***3. Attach Internet Gateway (IGW):***
-* Internet Gateway gives the VPC access to the internet.
-
-* Required for apt install, Docker pulls, etc.
+To allow communication between the VPC and the internet, an Internet Gateway is attached.
 
 ***4. Create a Route Table:***
-
-* Defining that all external traffic (0.0.0.0/0) is routed through the Internet Gateway.
+Define a custom Route Table that routes all outbound internet traffic (0.0.0.0/0) through the Internet Gateway.
 
 ***5. Associate the Route Table to the Subnet:***
+The route table is explicitly associated with the public subnet. This enables the subnet to act as a public-facing zone, meaning any EC2 instance inside can communicate over the internet.
 
-* Links the route table to your subnet.
+***6. Create a Security Group (Firewall):***
+A Security Group is created to allow only necessary inbound traffic:
 
-* Enables public internet routing for EC2s in the subnet.
+* Port 22 – For SSH access to the EC2 instance
 
-***6. Create a Security Group (Firewall Rules):***
-* Allows traffic inbound to:
+* Port 5000 – Flask web interface
 
->>SSH (22) → For EC2 login
+* Port 15672 – RabbitMQ Admin UI
 
->>Flask (5000) → Web interface
+* Port 5672 – RabbitMQ message broker port used by Celery
 
->>RabbitMQ UI (15672)
-
->>Flower dashboard (5555)
-
->>RabbitMQ (5672) for Celery message passing
-
-* Egress: All outbound traffic is allowed.
+* Port 5555 – Flower monitoring dashboard
+All outbound traffic is permitted by default.
 
 ***7. Create a Key Pair:***
-* Create or reads the existing public key from ~/.ssh/id_rsa.pub.
-* Ensuresing can SSH into your EC2 instance securely.
+Pulumi checks for an existing SSH public key (e.g., ~/.ssh/id_rsa.pub) or creates a new one.
+This key pair allows secure SSH access to the EC2 instance for administration and manual debugging.
 
 ***8. Launch an EC2 Instance:***
+Pulumi fetches the latest Ubuntu AMI published by Canonical. An EC2 instance is launched with:
 
-Fetching the latest Ubuntu AMI (Amazon Machine Image) from Canonical.	The generated SSH key (~/.ssh/id_rsa.pub) is uploaded to create a new EC2 Key Pair.EC2 instance is created with:
-- VPC & Public Subnet association
-- Security Group allowing ports 22, 5000, 5672, 15672, 5555
-- Public IP to access it from browser or SSH
-~~
->>* Entire asynchronous task processing system is deployed and run here.
->>*  Handles HTTP Requests and Communicates With Internet.
->>* Provides Secure Access and Stores Application Files Temporarily.
+* Public IP for browser and SSH access
+
+* Association with the VPC, public subnet, and security group
+
+* SSH Key Pair attached
+
+* All services—Flask, Celery, Redis, RabbitMQ, Flower—run inside Docker containers on this machine
+
+This instance hosts the entire async task system, handling API requests, task queuing, execution, and monitoring.
+
+***9. Expose Dockerized System to the Internet:***
+The EC2 instance acts as a single-node host for the Dockerized stack:
+Flask API receives tasks,Celery workers execute jobs,Redis stores results,RabbitMQ routes task queues,Flower offers real-time monitoring.
+
+Each service is mapped to its respective port and made accessible via the EC2's public IP.
+
 
 
 
 ***10. Exporting Outputs for Easy Access:***
+When pulumi up is executed, Pulumi prints the outputs:
 
-* When run pulumi up, we'll get:
+* EC2 Public IP (e.g., http://18.XXX.XXX.XX)
 
->>EC2's Public IP
+* EC2 Public DNS (e.g., ec2-XX-XX-XX.compute.amazonaws.com)
 
->>EC2's DNS
+These URLs allow:
 
-* Then Open:
+* http://<public_ip>:5000 → Flask UI
 
->>http://<public_ip>:5000 → Flask UI
+* http://<public_ip>:15672 → RabbitMQ Admin Panel
 
->>http://<public_ip>:15672 → RabbitMQ UI
-
->>http://<public_ip>:5555 → Flower
+* http://<public_ip>:5555 → Flower Monitoring Dashboard
 
 
 ***This project uses Pulumi (IaC) tool to define, deploy, and manage cloud infrastructure ( EC2, VPC, S3, etc.) using  programming languages Python.Pulumi Resource Breakdown:***
