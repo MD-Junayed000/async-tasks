@@ -21,7 +21,7 @@ This project is divided into 3 Labs, each Lab shows various implementation with 
 ---
 
 ##  System Architecture :
-<img src="assets/implement.svg" alt="Implementation Diagram" width="1000">
+<img src="assets/Try-Page.svg" alt="Implementation Diagram" width="1000">
 
 ***1. User Request via API :***
  user interacts with the frontend UI to trigger a task—such as sending an email, reversing a text, or analyzing sentiment. This action sends an HTTP request to the Flask backend through a specific API endpoint.
