@@ -1,30 +1,11 @@
-# Async Task Processing System with Flask, Celery, RabbitMQ & Pulumi-Driven AWS Deployment
+# Async Task Processing System with AWS Deployment
 
-This project demonstrates a production-ready asynchronous task processing system (i.e Deployed in EC2 using Pulumi explained in infra-branch) using:
+This project demonstrates a production-ready asynchronous task processing system (i.e Deployed in EC2 using Pulumi explained in infra-branch) using: 
 
-* ✅ Flask (Web + API)
-* ✅ Celery (Task Queue Executor)
-* ✅ RabbitMQ (Message Broker)
-* ✅ Redis (Result Backend)
-* ✅ Flower (Monitoring UI)
-* ✅ Docker (Multi-service orchestration)
+ **Flask** as (Web + API), **Celery** as (Task Queue Executor) , **RabbitMQ** as (Message Broker) , **Redis** as (Result Backend) , **Flower** as (Monitoring UI) , **Docker** as (Multi-service orchestration)
 
 
-## Table of Contents
-
-- [🎯 Project Overview](#-project-overview)
-- [System Architecture](#-system-architecture)
-- [ Project Features](#-project-features)
-- [ Components](#-components)
-- [📁 Project Structure](#-project-structure)
-- [🛠️ Step-by-Step Setup](#-step-by-step-setup)
-- [🌐 URLs & Ports](#-urls--ports)
-- [ Poridhi Lab Setup](#-poridhi-lab-setup)
-- [ Application API Endpoints](#-application)
-
-
-
-## 🎯 Project Overview
+## Project Overview
 
 This project is divided into 3 Labs, each Lab shows various implementation with techonology tools:
 
@@ -43,48 +24,40 @@ This project is divided into 3 Labs, each Lab shows various implementation with 
 <img src="assets/implement.svg" alt="Implementation Diagram" width="1000">
 
 ***1. User Request via API :***
+ user interacts with the frontend UI to trigger a task—such as sending an email, reversing a text, or analyzing sentiment. This action sends an HTTP request to the Flask backend through a specific API endpoint.
 
-→ Sends request from UI (email, text reverse, sentiment).
+***2.  Flask App: Receiving & Dispatching***
+ Receives request and pushes task to Celery using delay().Flask responds to the user immediately with a confirmation message and a task_id, ensuring the experience remains fast and non-blocking.
 
-***2. Flask App :***
 
-→ Receives request and pushes task to Celery using delay()
+***3. Celery as the Producer***
+When .delay() is called, Celery acts as a task producer—serializing the task and sending it to the RabbitMQ message broker.
 
-→ Immediately responds to user (non-blocking).
+***4. RabbitMQ: Message Broker Layer***
+RabbitMQ receives the serialized task and places it in a queue (commonly named celery_see).plays the role of a message router, managing queues and delivering tasks to any available consumer (Celery workers). It ensures decoupling between producers (Flask) and consumers (workers), allowing each part to scale independently.In these case:
 
-***3. Celery Producer Role (📩 Task Sent to Broker):***
+<img src="assets/Broker.svg" alt="Broker Diagram" width="700">
 
-→  When .delay() is called in Flask,  celery sends the task to RabbitMQ (the message broker).
+* Consumer = Celery Worker
 
-→ So, Flask acts as the Producer in this diagram.
+* Exchange = Implicit direct exchange
 
-***4. RabbitMQ Queue (Message Broker):***
+* Queue = celery_see (task queue)
 
-→ Holds tasks in queue(s).
 
-→ Forwards them to Celery Worker.
+***5. Celery Workers: Task Execution Engine***
 
-***5. Celery Workers:***
-
-→ Continuously listens to RabbitMQ.
-
-→ Pulls and executes tasks (email/text/sentiment).
-
-→ Can run multiple processes (parallel).
+Celery workers continuously listen for tasks on the RabbitMQ queue. When a task becomes available, a worker pulls it, executes the defined function (like sending an email or reversing a string), and processes it in the background. With --concurrency enabled, workers can process multiple tasks in parallel, significantly improving throughput and responsiveness.
 
 
 
-***6. Redis (Result Backend):***
+***6. Redis: Result Tracking Backend***
 
-→ Stores task result/status (e.g., SUCCESS, FAILURE).
-
-→ Flask can query result using ***AsyncResult.***
+After a worker finishes processing a task, it stores the result and status (SUCCESS, FAILURE, or RETRY) in Redis. Redis serves as a fast, in-memory database that holds the task metadata under unique keys tied to the task_id. Flask can later query Redis using AsyncResult(task_id) to retrieve this data and update the user.
 
 ***7. UI Feedback:***
 
-→ Task ID flashed in UI.
-
-→ Success/failure notification shown based on result from Redis.
+Finally, the frontend periodically polls the backend using the task_id to check the task’s status. Once Redis indicates that the task is complete, Flask fetches the result and returns it to the UI. The user sees a confirmation message or the processed output (e.g., reversed string or sentiment result). This feedback loop ensures the user is kept informed without blocking the main thread.
 
 ---
 ## Project Features :
@@ -117,25 +90,9 @@ This project is divided into 3 Labs, each Lab shows various implementation with 
 
 
 
-###  Queues and Exchange in RabbitMQ
 
-<img src="assets/Broker.svg" alt="Broker Diagram" width="700">
 
-* Celery uses a direct exchange
 
-* Tasks routed by name → bound to celery_see queue
-
-* Each worker listens on that queue
-
->> In RabbitMQ:
-
-* Producer = Flask (via Celery)
-
-* Consumer = Celery Worker
-
-* Exchange = Implicit direct exchange
-
-* Queue = celery_see (task queue)
 
 
 
@@ -161,8 +118,6 @@ async-tasks/
 ├── start.sh / start.ps1     # Quick Docker starter script
 
 ```
-
----
 
 
 
@@ -209,19 +164,16 @@ Each task returns a `Task ID` and status message ✅/❌.
 ---
 
 ## Poridhi Lab Setup
-
 1. Access the application through load balancer:
-At first we load the system following the instructions as in local machine and checking if all the ports are forwarded
-![image](https://github.com/user-attachments/assets/7e400c90-6b9e-4787-8416-12f10e29657c)
+At first we load the system following the instructions as in local machine and checking if all the ports are forwarded![image](https://github.com/user-attachments/assets/7e400c90-6b9e-4787-8416-12f10e29657c)
 
-2.Configure IP and port:
-- Get IP from eth0 using `ifconfig`
-
-![WhatsApp Image 2025-06-03 at 15 58 00_f2d59dd0](https://github.com/user-attachments/assets/c007ea7b-90ba-4270-a214-0e7b24545a1a)
+2. Configure IP and port:
+- Get IP from eth0 using `ifconfig`![WhatsApp Image 2025-06-03 at 15 58 00_f2d59dd0](https://github.com/user-attachments/assets/c007ea7b-90ba-4270-a214-0e7b24545a1a)
 - Use application port from Dockerfile
 
 3. Create load balancer and Configure with your application's IP and port in Poridhi lab:
-![Screenshot 2025-06-03 155900](https://github.com/user-attachments/assets/aec14ae4-a1d6-405b-aa52-e710c5a9ece5)
+
+   - ![Screenshot 2025-06-03 155900](https://github.com/user-attachments/assets/aec14ae4-a1d6-405b-aa52-e710c5a9ece5)
 
 ![image](https://github.com/user-attachments/assets/f7786750-1b00-4e37-86a1-34744d5b7cb4)
 
@@ -234,29 +186,29 @@ Domain name for a load balancer in the Poridhi lab environment (For 5000 port):h
 ![Screenshot 2025-06-03 192518](https://github.com/user-attachments/assets/6054e0c2-23f9-4f16-8fd2-e99298c52616)
 
 
-##  Task Monitoring with Flower
+###  Task Monitoring with Flower
 
-* Open the load balancer for port 5555 in the poridhi lab environment:https://67aa3ccddb2c69e7e975ceff-lb-751.bm-southeast.lab.poridhi.io/tasks
+ Open the load balancer for port 5555 in the poridhi lab environment:https://67aa3ccddb2c69e7e975ceff-lb-751.bm-southeast.lab.poridhi.io/tasks
 
   ![Screenshot 2025-06-03 192629](https://github.com/user-attachments/assets/2dbf9954-abf7-4611-af9f-8e9be87efc2b)
 
 * View task history, retries, failures
 * Inspect live workers and system load
 
-## RabbitMQ Management UI
--Default credentials: guest/guest
+### RabbitMQ Management UI
+Default credentials: guest/guest
 -Monitor queues, exchanges, and connections
 ![Screenshot 2025-06-03 192604](https://github.com/user-attachments/assets/66837fde-a699-4a30-afab-009b97812658)
 
 
-## Error Handling & Retries
+### Error Handling & Retries
 >Email task uses self.retry() with max_retries=3
 
 >If task fails, it's requeued
 
 >Redis tracks the task state:
 
-*PENDING, SUCCESS, RETRY, FAILURE
+* PENDING, SUCCESS, RETRY, FAILURE
 ![Screenshot 2025-06-03 192859](https://github.com/user-attachments/assets/c33a9312-de04-4305-b0d6-40a9be625430)
 
 
@@ -292,29 +244,22 @@ Example JSON for email:
 | No Redis output         | Use `AsyncResult().get()` or API fetch |
 | UI not showing output   | Ensure sessions are set up correctly   |
 
----
 
-##  Deployment on AWS EC2 (Fully Explained in Lab-2 and Lab-3)
+
+
+##  Concepts Implemented
+
+* Direct exchange with `celery_see` queue
+* Multi-worker concurrency with `--concurrency=4`
+* Flask session flash for notifications
+* Redis result tracking via `AsyncResult`
+* Queue retry using `self.retry()`
+
+
+##  Deployment on AWS EC2 ( Explained in Lab-2 and Lab-3)
 
 1. Launch Ubuntu EC2
 2. SSH into it
 3.Run docker-compose up
 4.Expose ports 5000, 5672, 6379, 15672, 5555 in security group
 
-
-
-##  Concepts Implemented
-
-* ✅ Direct exchange with `celery_see` queue
-* ✅ Multi-worker concurrency with `--concurrency=4`
-* ✅ Flask session flash for notifications
-* ✅ Redis result tracking via `AsyncResult`
-* ✅ Queue retry using `self.retry()`
-
-
-
-
-
-## License
-
-MIT License © 2025 [poridhi.io](https://poridhi.io)
