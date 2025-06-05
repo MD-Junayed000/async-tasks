@@ -36,7 +36,7 @@ When .delay() is called, Celery acts as a task producer—serializing the task a
 ***4. RabbitMQ: Message Broker Layer***
 RabbitMQ receives the serialized task and places it in a queue (commonly named celery_see).plays the role of a message router, managing queues and delivering tasks to any available consumer (Celery workers). It ensures decoupling between producers (Flask) and consumers (workers), allowing each part to scale independently.In these case:
 
-<img src="assets/Broker.svg" alt="Broker Diagram" width="700">
+<img src="assets/queue.svg" alt="Broker Diagram" width="700">
 
 * Consumer = Celery Worker
 
