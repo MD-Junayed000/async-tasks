@@ -13,36 +13,39 @@ All EC2s are Dockerized and orchestrated using `docker-compose` profiles.
 
 ##  Architecture Diagram
 
-<img src="assets/Multi.svg" alt="Implementation Diagram" width="800" >
+<div align="center">
+  <img src="assets/Service.svg" alt="Implementation Diagram" width="800">
+</div>
+
 
 
 
 ## How the System is Structured
 
-### 🧱 Infrastructure (via `async-stack-Multi-EC2/__main__.py`)
+###  Infrastructure (via `async-stack-Multi-EC2/__main__.py`)
 
-1. **VPC Creation (`10.0.0.0/16`)**
-   - Isolated virtual network for all EC2 instances.
-   - DNS support is enabled for name resolution.
+1. **Virtual Private Cloud (VPC) – `10.0.0.0/16`**
+   A dedicated Virtual Private Cloud is created to host all components of the system within a secure, logically isolated AWS network.
 
-2. **Subnet (`10.0.1.0/24`)**
-   - Public subnet for launching EC2s with public IPs.
-   - `map_public_ip_on_launch=True` to auto-assign public IP.
+DNS hostname and resolution support are enabled to allow services to communicate via service names rather than hardcoded IPs, simplifying connectivity across EC2 instances.
+
+2. **Public Subnet – `10.0.1.0/24`**
+   A public subnet is defined within the VPC, accommodating up to 256 IP addresses.The flag `map_public_ip_on_launch=True` ensures that each EC2 instance launched within this subnet automatically receives a public IP, enabling direct SSH and HTTP access over the internet.
 
 3. **Internet Gateway**
-   - Allows EC2s to access the internet (e.g., apt, pip, git, Docker).
+Allows EC2s to access the internet (e.g., apt, pip, git, Docker).
 
 4. **Route Table**
-   - Routes all internet-bound traffic (`0.0.0.0/0`) through the Internet Gateway.
+   - Routes all  outbound internet traffic (`0.0.0.0/0`) through the Internet Gateway.
 
-5. **Security Group**
-   - Allows:
+5. **Security Group Configuration (Firewall)**
+A centralized Security Group is configured with both inbound and outbound rules. It allows access to:
      - SSH (22)
      - Flask (5000)
      - RabbitMQ: AMQP (5672), UI (15672)
      - Flower dashboard (5555)
      - Redis (6379)
-   - Allows all outbound traffic.
+This makes each service publicly accessible for its specific function while retaining security boundaries.
 
 6. **SSH Key Pair**
    - Reads `~/.ssh/id_rsa.pub` to create a key pair for secure login.
@@ -59,7 +62,8 @@ This allows:
 •	flower EC2 to monitor everything
 •	Each EC2 gets only what it needs — reducing overhead
 
-8. **Six EC2 Instances Created**
+8. **EC2 Instances Launched:**
+A total of six EC2 instances are launched, each assigned a specific responsibility:
    - `rabbitmq-ec2`
    - `redis-ec2`
    - `flask-ec2`
