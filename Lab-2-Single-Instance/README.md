@@ -6,7 +6,7 @@ This section demonstrates how to deploy a *Flask-based asynchronous task process
 
 ##  Architecture Workflow Diagram:
 
-<img src="asset/Cloud.svg" alt="Broker Diagram" width="1000">
+<img src="asset/Work.svg" alt="Broker Diagram" width="1000">
 
 ***1. Create a Virtual Private Cloud (VPC):***
 
