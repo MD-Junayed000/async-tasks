@@ -61,41 +61,10 @@ After a worker finishes processing a task, it stores the result and status (SUCC
 
 Finally, the frontend periodically polls the backend using the task_id to check the task’s status. Once Redis indicates that the task is complete, Flask fetches the result and returns it to the UI. The user sees a confirmation message or the processed output (e.g., reversed string or sentiment result). This feedback loop ensures the user is kept informed without blocking the main thread.
 
----
-## Project Features :
-* 📨 Async Email Sender with retry logic
 
-* 🔁 Reverse Text Processor * 💬 Fake Sentiment Analyzer
+## Client Interaction Flow
 
-* 🔁 Redis-based task result storage
-
-* 📊 Live task monitoring via Flower
-
-* 🧪 Task inspection via Redis
-
-* 🖥️ UI with feedback using Flask + Bootstrap
-
-* 🐳 Docker-based deployment
-
-
-### 🔧 Components :
-
-| Component    | Role                                 |
-| ------------ | ------------------------------------ |
-| **Flask**    | UI, task submission, status fetch    |
-| **Celery**   | Task execution engine                |
-| **RabbitMQ** | Message broker to queue tasks        |
-| **Redis**    | Stores task status & results         |
-| **Flower**   | Real-time task monitoring dashboard  |
-| **Docker**   | Container orchestration for services |
-
-
-
-
-
-
-
-
+<img src="assets/Flow.svg" alt="Implementation Diagram" width="1000">
 
 
 
