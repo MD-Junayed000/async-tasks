@@ -214,7 +214,8 @@ Docker installed and working
 aws configure # Use credentials from Poridhi Lab or IAM keys
 
 ```
-![image](https://github.com/user-attachments/assets/92e8ce8c-fec7-4789-afe5-0e484d6ed932)
+![image](https://github.com/user-attachments/assets/10ab64ce-9d44-41cd-908e-cfc972b12b96)
+
 
 
 ### 📁 2.Initialize Pulumi Project
@@ -287,6 +288,9 @@ pip install -r requirements.txt
 ## 4. Define Infrastructure (__main__.py):
 
 Replace __main__.py with this:
+
+***here the modified app/celeryconfig.py in async-tasks and docker-compose.yml are pushed into a new repo https://github.com/MD-Junayed000/async-tasks-multi-EC2 and clone directly into the __main__.py.***
+
 ```bash
 
 import pulumi
@@ -453,7 +457,7 @@ pulumi.export("Flower IP", flower.public_ip)
 
 ```
 
-here the modified app/celeryconfig.py in async-tasks and docker-compose.yml are pushed into a new repo https://github.com/MD-Junayed000/async-tasks-multi-EC2 and clone directly into the __main__.py.
+
 
 
 ### 5. Generating a valid SSH key and fixing the path.
@@ -488,6 +492,7 @@ pulumi up --yes
 you should see a output like this:
 ![image](https://github.com/user-attachments/assets/bff9f865-29d4-448d-a6b4-0974ea00bdf4)
 
+is going to take **2-3 mins for the entire system to setup** and the ports to bind and working
 
 ✅ You will get public_ip of the EC2 instance.
 
@@ -515,10 +520,24 @@ Then inside EC2 monitor which services are setup and there logs:
 
 cat /home/ubuntu/startup.log
 ```
+***Fetching Results via Redis***
 
+```bash
 
+ssh -i /root/code/id_rsa ubuntu@<Redis IP>
+```
+then see which container ID is open
+```bash
+docker ps
+```
+you should see a output like this:
+![image](https://github.com/user-attachments/assets/8fa47795-7c50-44b9-944b-7ffc51f409c0)
 
-
+then to query it inside run the command:
+```bash
+docker exec -it <name> redis-cli
+```
+![image](https://github.com/user-attachments/assets/6716637e-990f-48c6-872d-1ab7618e18f8)
 
 
 
