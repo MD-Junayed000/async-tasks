@@ -1,4 +1,4 @@
-# Async Task Processing System with Flask, Celery, RabbitMQ & Pulumi-Driven AWS Deployment
+# Async Task Processing System with Pulumi-Driven AWS Deployment
 
 ## Project Overview
 This section demonstrates how to deploy a *Flask-based asynchronous task processing system* using AWS EC2 ,creating a VPC and public subnetting via driven by Pulumi IaC.
@@ -106,6 +106,7 @@ This Setup can be verified by the created resources such as VPC, Subnet, EC2 ins
 
 
 ## Folder Structure
+
 async-stack-infra/
   ├── __main__.py (Pulumi infra code)
   ├── Pulumi.yaml
@@ -125,10 +126,10 @@ async-stack-infra/
 
 ---
 
-##  Step-by-Step Setup (Local + AWS EC2 Deployment) using the Poridhi.io AWS NEtworking Lab (Launch An Ec2 Instance In A Virtual Private Cloud (vpc): 
+##  Step-by-Step Setup (Local + AWS EC2 Deployment) : 
 
 
-### ✅ 1. Prerequisites (on your machine)
+###  1. Prerequisites (on your machine)
 Make sure you’ve:
 
 AWS CLI installed 
@@ -141,13 +142,16 @@ Docker installed and working
 ![Screenshot 2025-06-03 232530](https://github.com/user-attachments/assets/4968a08b-e35a-4795-8de5-531493a8dccc)
 
 
-~~AWS Configuration form the terminal:
+~~ AWS Configuration from the terminal:
 ```bash
 
 aws configure # Use credentials from Poridhi Lab or IAM keys
 
 ```
-![Screenshot 2025-06-03 232610](https://github.com/user-attachments/assets/3464361a-f40e-460a-afb0-2d421a528f6e)
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/3464361a-f40e-460a-afb0-2d421a528f6e" alt="Screenshot 2025-06-03 232610" width="700">
+</div>
+
 
 ### 📁 2.Initialize Pulumi Project
 ```bash
@@ -158,8 +162,11 @@ pulumi new aws-python
 ```
 For First-time login need to generate tokens:
 
-![image](https://github.com/user-attachments/assets/4e6dccad-d64e-4506-b02e-e59564b47a58)
-![image](https://github.com/user-attachments/assets/eb85c6e0-36d9-42a3-adfb-61429dfc2e91)
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/4e6dccad-d64e-4506-b02e-e59564b47a58" alt="image">
+</div>
+
+
 
 **Respond to prompts:**
 
@@ -313,20 +320,20 @@ pulumi.export("public_ip", instance.public_ip)
 pulumi.export("public_dns", instance.public_dns)
 
 ```
-### 5. Generating a valid SSH key and fixing the path.
+## 5. Generating a valid SSH key and fixing the path.
 ***🔧 Step 1: Generate a Key Pair***
 
 In the terminal (still in /root/code/):
 ```bash
 ssh-keygen -t rsa -b 2048 -f /root/code/id_rsa -N ""
 ```
-- This creates:
+This creates:
 
--- ✅ /root/code/id_rsa → private key
+* ✅ /root/code/id_rsa → private key
 
--- ✅ /root/code/id_rsa.pub → public key
+* ✅ /root/code/id_rsa.pub → public key
 
-***🔧 Step 2: Confirm the file exists***
+***Step 2: Confirm the file exists***
 ```bash
 ls -l /root/code/id_rsa.pub
 ```
@@ -347,7 +354,7 @@ you should see a output like this:
 
 ✅ You will get public_ip of the EC2 instance.
 
-## 6. SSH Into EC2 and Set Up Dockerized Project
+## 7. SSH Into EC2 and Set Up Dockerized Project
 ```bash
 
 ssh -i /root/code/id_rsa ubuntu@<public_ip>
@@ -379,7 +386,7 @@ cd async-tasks
 cd Lab-1-Async-Tasks/Async-tasks
 sudo docker-compose up -d
 ```
-## 7. Access Your Flask App & Flower
+## 8. Access Your Flask App & Flower
 * Flask UI: http://<public_ip>:5000 (demo ![image](https://github.com/user-attachments/assets/7c27d753-9b1b-4878-a346-f65df13deb57) )
 
 
@@ -387,7 +394,7 @@ sudo docker-compose up -d
 
 * RabbitMQ: http://<public_ip>:15672 (guest/guest)
 
-## 8. Postman API Testing
+## 9. Postman API Testing
 If want to expose APIs (/submit, /check_status/<id>),  can now use Postman to:
 
 * Submit task via POST /submit
@@ -424,15 +431,6 @@ User -> Flask UI -> Celery .delay() -> RabbitMQ (queue) -> Celery Worker -> Redi
 pulumi destroy --yes  # Destroys everything
 ```
 
----
-
-## Future Enhancements
-- Adding S3 for file upload task 
-- Add auto-retry + failure queue 
-- Persist task logs to S3 
-- UI improvement with live polling  
-
-
 
 
 ## Summary
@@ -440,6 +438,6 @@ This project showcases a full *production-style async task pipeline* with modula
 
 
 
-## License
 
-MIT License © 2025 [poridhi.io](https://poridhi.io)
+
+
