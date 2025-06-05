@@ -36,7 +36,9 @@ When .delay() is called, Celery acts as a task producer—serializing the task a
 ***4. RabbitMQ: Message Broker Layer***
 RabbitMQ receives the serialized task and places it in a queue (commonly named celery_see).plays the role of a message router, managing queues and delivering tasks to any available consumer (Celery workers). It ensures decoupling between producers (Flask) and consumers (workers), allowing each part to scale independently.In these case:
 
-<img src="assets/queue.svg" alt="Broker Diagram" width="700">
+<div align="center">
+  <img src="assets/queue.svg" alt="Broker Diagram" width="700">
+</div>
 
 * Consumer = Celery Worker
 
@@ -151,7 +153,9 @@ docker-compose up --build
 
 
 
-##  Available Tasks
+## Available Tasks
+
+<div align="center">
 
 | Task Type        | Description                           |
 | ---------------- | ------------------------------------- |
@@ -159,7 +163,10 @@ docker-compose up --build
 | **Reverse Text** | Reverses any string                   |
 | **Sentiment**    | Fake sentiment analysis on input text |
 
+</div>
+
 Each task returns a `Task ID` and status message ✅/❌.
+
 
 ---
 
@@ -167,13 +174,24 @@ Each task returns a `Task ID` and status message ✅/❌.
 1. Access the application through load balancer:
 At first we load the system following the instructions as in local machine and checking if all the ports are forwarded![image](https://github.com/user-attachments/assets/7e400c90-6b9e-4787-8416-12f10e29657c)
 
+
+
 2. Configure IP and port:
-- Get IP from eth0 using `ifconfig`![WhatsApp Image 2025-06-03 at 15 58 00_f2d59dd0](https://github.com/user-attachments/assets/c007ea7b-90ba-4270-a214-0e7b24545a1a)
+- Get IP from eth0 using `ifconfig`
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/c007ea7b-90ba-4270-a214-0e7b24545a1a" alt="WhatsApp Image 2025-06-03 at 15 58 00_f2d59dd0" width="600">
+</div>
+
 - Use application port from Dockerfile
 
-3. Create load balancer and Configure with your application's IP and port in Poridhi lab:
 
-   - ![Screenshot 2025-06-03 155900](https://github.com/user-attachments/assets/aec14ae4-a1d6-405b-aa52-e710c5a9ece5)
+
+3. Create load balancer and configure with your application's IP and port in Poridhi lab:
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/aec14ae4-a1d6-405b-aa52-e710c5a9ece5" alt="Screenshot 2025-06-03 155900" width="600">
+</div>
 
 ![image](https://github.com/user-attachments/assets/f7786750-1b00-4e37-86a1-34744d5b7cb4)
 
